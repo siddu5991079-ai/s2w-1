@@ -1,9 +1,6 @@
 
 
-
-
-
-name: 24/7 Zero-UI Stream Bot
+name: Test MediaStream Hooking
 
 on:
   workflow_dispatch:
@@ -13,26 +10,14 @@ on:
         required: true
         type: string
         default: 'https://dadocric.st/player.php?id=starsp3&v=m'
-      okru_stream_channel:
-        description: 'OK.ru Broadcast Channel (1 to 8)'
-        required: true
-        type: choice
-        options: [ '1', '2', '3', '4', '5', '6', '7', '8' ]
-        default: '1'
-      stream_quality:
-        description: 'Internet Speed / Stream Quality'
-        required: true
-        type: choice
-        options: [ '110KBps (Balanced 480p)' ]
-        default: '110KBps (Balanced 480p)'
 
 permissions:
   contents: write
 
 jobs:
-  stream-and-hook:
+  test-hook:
     runs-on: ubuntu-latest
-    timeout-minutes: 360 # 6 Hours Limit
+    timeout-minutes: 30
 
     steps:
     - name: Get Code
@@ -51,15 +36,23 @@ jobs:
     - name: Install NPM Packages
       run: npm install
 
-    - name: Run Script (MediaStream Extraction)
+    - name: Run Extraction Test (15 Seconds)
       env:
         TARGET_URL: ${{ github.event.inputs.target_url }}
-        OKRU_STREAM_ID: ${{ github.event.inputs.okru_stream_channel }}
-        STREAM_QUALITY: ${{ github.event.inputs.stream_quality }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GH_PAT: ${{ secrets.GITHUB_TOKEN }} # Ensure this token has workflow dispatch permissions
       run: |
         xvfb-run -s "-screen 0 1280x720x24 -ac" node stream.js
+
+    # 🚀 UPLOAD TEST VIDEO
+    - name: Upload Test Video to Releases
+      if: always() 
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: "hook-test-${{ github.run_id }}"
+        name: "MediaStream Hook Data - ${{ github.run_id }}"
+        body: "15 seconds of raw data extracted directly from the video element."
+        files: recording.mp4
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
 
