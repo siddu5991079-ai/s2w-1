@@ -1,0 +1,15 @@
+{
+  "name": "stream-bot-pro",
+  "version": "2.0.0",
+  "description": "Zero-UI MediaStream Hooking Bot",
+  "main": "stream.js",
+  "scripts": {
+    "start": "node stream.js"
+  },
+  "dependencies": {
+    "puppeteer": "^22.0.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "ws": "^8.16.0"
+  }
+}
