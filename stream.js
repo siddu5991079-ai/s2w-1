@@ -214,7 +214,7 @@ async function startDirectStreaming() {
         }
     }).catch(()=>{});
 
-    // 📡 5. START FFMPEG BROADCAST (PERFECT AUDIO SYNC WAPAS LAI GAYI HAI)
+    // 📡 5. START FFMPEG BROADCAST (PERFECT AUDIO SYNC LAGA DIYA HAI)
     console.log(`[+] Broadcasting to OK.ru CHANNEL: ${SELECTED_CHANNEL} - Quality: ${streamQuality}`);
     
     let vfScale = 'scale=854:480';
@@ -230,15 +230,15 @@ async function startDirectStreaming() {
     let ffmpegArgs = [
         '-y', 
         
-        // 👉 1. VIDEO INPUT (WAPAS 0.8 SECONDS DELAY LAGA DIYA)
+        // 👉 1. VIDEO INPUT (VIDEO SE DELAY NIKAL DIYA - FULL SPEED)
         '-use_wallclock_as_timestamps', '1', 
-        '-itsoffset', '0.8', 
         '-thread_queue_size', '1024',
         '-f', 'x11grab', '-draw_mouse', '0', '-video_size', '1280x720', '-framerate', '30',
         '-i', displayNum, 
         
-        // 👉 2. AUDIO INPUT (AUDIO SE DELAY NIKAL DIYA)
+        // 👉 2. AUDIO INPUT (AUDIO KO 0.8 SECONDS ROKA HAI TAHA KE SYNC HO JAYE)
         '-use_wallclock_as_timestamps', '1', 
+        '-itsoffset', '0.8',   // <-- Yahan Audio par delay lagaya hai
         '-thread_queue_size', '1024', 
         '-f', 'pulse', '-i', 'default',
         
@@ -338,8 +338,6 @@ setTimeout(async () => {
 }, 21000000); 
 
 mainLoop();
-
-// a
 
 
 
