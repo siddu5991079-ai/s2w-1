@@ -45,19 +45,18 @@ async function startDirectStreaming() {
     console.log(`[*] Starting browser and FFmpeg...`);
     const streamQuality = process.env.STREAM_QUALITY || '110KBps (Balanced 480p)';
     
-    // 🛠️ FIX 1: Display Variable aur Rendering Flags theek kiye
     browser = await puppeteer.launch({
         headless: false, 
         defaultViewport: { width: 1280, height: 720 },
         ignoreDefaultArgs: ['--enable-automation'], 
-        env: { DISPLAY: process.env.DISPLAY || ':99', ...process.env }, // 👈 DISPLAY zaroori hai black screen rokne ke liye
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage', 
             '--disable-gpu',           
             
-            // ❌ Yahan se --disable-software-rasterizer hata diya hai taake screen render ho
+            // 👇 YEH 3 NAYE FLAGS WAPAS ADD KIYE HAIN CRASH / BLACK SCREEN ROKNE KE LIYE 👇
+            '--disable-software-rasterizer',   
             '--disable-accelerated-2d-canvas', 
             '--force-color-profile=srgb',      
 
@@ -127,7 +126,7 @@ async function startDirectStreaming() {
         await new Promise(r => setTimeout(r, 1000));
     }
 
-    // 🖱️ 2.5 THE NEW UNMUTE BUTTON CLICKER
+    // 🖱️ 2.5 THE NEW UNMUTE BUTTON CLICKER (One Time Auto-Click)
     console.log('[*] Hunting for the "CLICK UNMUTE STREAM" button...');
     let unmuteClicked = false;
     let unmuteAttempts = 0;
@@ -188,8 +187,18 @@ async function startDirectStreaming() {
         targetFrame = page.mainFrame();
     }
 
-    // 🛠️ FIX 2: SAFE FULLSCREEN FORCE (Black screen glitch yahan se theek kiya hai)
-    console.log('[*] Enforcing Full Screen UI Safely...');
+    // ⬛ 4. IMMEDIATE BLACK BACKGROUND & FULLSCREEN FORCE (UNTOUCHED)
+    console.log('[*] Enforcing Black Background and Full Screen UI...');
+    await page.evaluate(() => {
+        document.body.style.backgroundColor = 'black';
+        document.body.style.overflow = 'hidden';
+        document.querySelectorAll('iframe').forEach(iframe => {
+            iframe.style.position = 'fixed'; iframe.style.top = '0'; iframe.style.left = '0';
+            iframe.style.width = '100vw'; iframe.style.height = '100vh';
+            iframe.style.zIndex = '999999'; iframe.style.backgroundColor = 'black'; iframe.style.border = 'none';
+        });
+    }).catch(() => {});
+
     await targetFrame.evaluate(async () => {
         const style = document.createElement('style');
         style.innerHTML = `.jw-controls, .jw-ui, .plyr__controls, .vjs-control-bar, [data-player] .controls, #UnMutePlayer { display: none !important; }`;
@@ -199,17 +208,9 @@ async function startDirectStreaming() {
         if (video) { 
             video.muted = false; 
             video.volume = 1.0; 
-            video.style.position = 'fixed'; 
-            video.style.top = '0'; 
-            video.style.left = '0';
-            video.style.width = '100vw'; 
-            video.style.height = '100vh';
-            video.style.zIndex = '9999999999'; // Sabse aage le aye
-            video.style.backgroundColor = 'black'; 
-            video.style.objectFit = 'contain';
-            
-            // Zabardasti play karwao agar ruka ho
-            video.play().catch(()=>{});
+            video.style.position = 'fixed'; video.style.top = '0'; video.style.left = '0';
+            video.style.width = '100vw'; video.style.height = '100vh';
+            video.style.zIndex = '2147483647'; video.style.backgroundColor = 'black'; video.style.objectFit = 'contain';
         }
     }).catch(()=>{});
 
@@ -232,19 +233,18 @@ async function startDirectStreaming() {
     const displayNum = process.env.DISPLAY || ':99';
     let ffmpegArgs = [
         '-y', 
+        // 👉 Purana aur perfectly working A/V Sync logic wapis add kar diya gaya hai!
         '-use_wallclock_as_timestamps', '1', '-thread_queue_size', '1024',
         '-f', 'x11grab', '-draw_mouse', '0', '-video_size', '1280x720', '-framerate', '30',
         '-i', displayNum, 
-        
         '-use_wallclock_as_timestamps', '1', '-thread_queue_size', '1024',
         '-f', 'pulse', '-i', 'default',
-        
         '-vf', vfScale, '-c:v', 'libx264', '-preset', 'veryfast', '-profile:v', 'main',
         '-b:v', bv, '-maxrate', maxrate, '-bufsize', bufsize,
         '-pix_fmt', 'yuv420p', '-g', '60', '-c:a', 'aac', '-b:a', ba, '-ac', '2', '-ar', '44100',
         
-        // 🛠️ FIX 3: AUDIO DELAY FIX (Perfect Syncing) - 300ms delay
-        '-af', 'aresample=async=1,adelay=300|300', 
+        // 👉 Drift bachane ke liye sirf yeh perfect resample filter rakha hai
+        '-af', 'aresample=async=1', 
         
         '-f', 'flv', RTMP_DESTINATION 
     ];
@@ -260,7 +260,7 @@ async function startDirectStreaming() {
     await recorder.stop();
     console.log('[+] 30-Sec Debug Video Saved! Safe to cancel workflow anytime now.');
 
-    // 🧠 7. THE SMART WATCHDOG
+    // 🧠 7. THE SMART WATCHDOG (With Anti-Pause capability)
     console.log('\n[*] Smart Engine Connected! 24/7 Monitoring Active...');
     while (true) {
         if (!browser || !browser.isConnected()) throw new Error("Browser closed.");
@@ -307,34 +307,39 @@ process.on('SIGINT', async () => {
 // =========================================================================
 // ⏱️ AUTO-OVERLAP TRIGGER (Runs exactly after 5h 50m)
 // =========================================================================
-setTimeout(async () => {
-    console.log("\n[*] 5h 50m completed! Triggering next action for overlap...");
-    const repo = process.env.GITHUB_REPOSITORY;
-    const token = process.env.GH_PAT;
-    const ref = process.env.GITHUB_REF_NAME || 'main';
-    
-    if (!repo || !token) return;
-
+setTimeout(() => {
+    console.log("\n[*] 5h 50m completed! Triggering next action for seamless overlap...");
     try {
-        await fetch(`https://api.github.com/repos/${repo}/actions/workflows/main.yml/dispatches`, {
-            method: 'POST',
-            headers: { 'Accept': 'application/vnd.github.v3+json', 'Authorization': `token ${token}` },
-            body: JSON.stringify({
-                ref: ref,
-                inputs: {
-                    target_url: process.env.TARGET_URL,
-                    okru_stream_channel: process.env.OKRU_STREAM_ID,
-                    stream_quality: process.env.STREAM_QUALITY
-                }
-            })
-        });
+        // 👉 Wapis purana working Native Github CLI (gh) trigger laga diya hai
+        const { execSync } = require('child_process');
+        
+        const targetUrl = process.env.TARGET_URL || 'https://dadocric.st/player.php?id=starsp3&v=m';
+        const channel = process.env.OKRU_STREAM_ID || '1';
+        const quality = process.env.STREAM_QUALITY || '110KBps (Balanced 480p)';
+
+        const cmd = `gh workflow run main.yml -f target_url="${targetUrl}" -f okru_stream_channel="${channel}" -f stream_quality="${quality}"`;
+        
+        console.log(`[*] Executing Command: ${cmd}`);
+        execSync(cmd, { stdio: 'inherit' });
+        
         console.log("[+] Next workflow run successfully triggered!");
+
+        // 5 minute ka waqfa taake naya action start hoke apni live key le sakay
+        setTimeout(async () => {
+            console.log("\n[*] Handing over stream to next action. Shutting down cleanly...");
+            await cleanup();
+            process.exit(0);
+        }, 300000);
+
     } catch (err) {
-        console.error("[-] Failed to trigger next workflow.");
+        console.error("[-] Failed to trigger next workflow using GH CLI:", err.message);
     }
-}, 21000000); 
+}, 21000000);
 
 mainLoop();
+
+
+
 
 
 
