@@ -206,7 +206,14 @@ async function startDirectStreaming() {
         }
     }).catch(()=>{});
 
-    // 📡 5. START FFMPEG BROADCAST (FIXED AUDIO/VIDEO SYNC)
+
+
+
+
+
+
+
+    // 📡 5. START FFMPEG BROADCAST (PERFECT AUDIO SYNC)
     console.log(`[+] Broadcasting to OK.ru CHANNEL: ${SELECTED_CHANNEL} - Quality: ${streamQuality}`);
     
     let vfScale = 'scale=854:480';
@@ -222,15 +229,15 @@ async function startDirectStreaming() {
     let ffmpegArgs = [
         '-y', 
         
-        // 👉 1. VIDEO INPUT (Yahan video ko 0.8 sec delay kiya hai taake audio sath mil jaye)
+        // 👉 1. VIDEO INPUT (Video par koi delay nahi)
         '-use_wallclock_as_timestamps', '1', 
-        '-itsoffset', '0.8', 
         '-thread_queue_size', '1024',
         '-f', 'x11grab', '-draw_mouse', '0', '-video_size', '1280x720', '-framerate', '30',
         '-i', displayNum, 
         
-        // 👉 2. AUDIO INPUT (Audio se delay nikal diya gaya hai)
+        // 👉 2. AUDIO INPUT (Audio ko thora sa delay kiya hai: 0.5 seconds)
         '-use_wallclock_as_timestamps', '1', 
+        '-itsoffset', '0.5',  // <--- Yahan 0.5 kiya hai
         '-thread_queue_size', '1024', 
         '-f', 'pulse', '-i', 'default',
         
@@ -248,6 +255,56 @@ async function startDirectStreaming() {
     ffmpegProcess.stderr.on('data', (data) => {
         if (data.toString().includes('Error')) console.log(`[FFmpeg Error]: ${data}`);
     });
+
+
+
+
+
+
+
+    
+    // // 📡 5. START FFMPEG BROADCAST (FIXED AUDIO/VIDEO SYNC)
+    // console.log(`[+] Broadcasting to OK.ru CHANNEL: ${SELECTED_CHANNEL} - Quality: ${streamQuality}`);
+    
+    // let vfScale = 'scale=854:480';
+    // let bv = '800k'; let maxrate = '850k'; let bufsize = '1700k'; let ba = '64k';
+
+    // if (streamQuality.includes('50KBps')) {
+    //     vfScale = 'scale=640:360'; bv = '350k'; maxrate = '400k'; bufsize = '800k'; ba = '32k';
+    // } else if (streamQuality.includes('30KBps')) {
+    //     vfScale = 'scale=426:240'; bv = '200k'; maxrate = '220k'; bufsize = '440k'; ba = '32k';
+    // }
+
+    // const displayNum = process.env.DISPLAY || ':99';
+    // let ffmpegArgs = [
+    //     '-y', 
+        
+    //     // 👉 1. VIDEO INPUT (Yahan video ko 0.8 sec delay kiya hai taake audio sath mil jaye)
+    //     '-use_wallclock_as_timestamps', '1', 
+    //     '-itsoffset', '0.8', 
+    //     '-thread_queue_size', '1024',
+    //     '-f', 'x11grab', '-draw_mouse', '0', '-video_size', '1280x720', '-framerate', '30',
+    //     '-i', displayNum, 
+        
+    //     // 👉 2. AUDIO INPUT (Audio se delay nikal diya gaya hai)
+    //     '-use_wallclock_as_timestamps', '1', 
+    //     '-thread_queue_size', '1024', 
+    //     '-f', 'pulse', '-i', 'default',
+        
+    //     '-vf', vfScale, '-c:v', 'libx264', '-preset', 'veryfast', '-profile:v', 'main',
+    //     '-b:v', bv, '-maxrate', maxrate, '-bufsize', bufsize,
+    //     '-pix_fmt', 'yuv420p', '-g', '60', '-c:a', 'aac', '-b:a', ba, '-ac', '2', '-ar', '44100',
+        
+    //     // Advanced Audio Resample
+    //     '-af', 'aresample=async=1000', 
+        
+    //     '-f', 'flv', RTMP_DESTINATION 
+    // ];
+    
+    // ffmpegProcess = spawn('ffmpeg', ffmpegArgs);
+    // ffmpegProcess.stderr.on('data', (data) => {
+    //     if (data.toString().includes('Error')) console.log(`[FFmpeg Error]: ${data}`);
+    // });
 
     // ⏱️ 6. STOP RECORDING AFTER 30 SECONDS
     console.log('[*] Capturing stream for 30 seconds to finalize Debug Recording...');
