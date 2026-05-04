@@ -214,7 +214,7 @@ async function startDirectStreaming() {
         }
     }).catch(()=>{});
 
-    // 📡 5. START FFMPEG BROADCAST (PERFECT AUDIO SYNC LAGA DIYA HAI)
+    // 📡 5. START FFMPEG BROADCAST (NO MANUAL DELAYS)
     console.log(`[+] Broadcasting to OK.ru CHANNEL: ${SELECTED_CHANNEL} - Quality: ${streamQuality}`);
     
     let vfScale = 'scale=854:480';
@@ -230,15 +230,14 @@ async function startDirectStreaming() {
     let ffmpegArgs = [
         '-y', 
         
-        // 👉 1. VIDEO INPUT (VIDEO SE DELAY NIKAL DIYA - FULL SPEED)
+        // 👉 1. VIDEO INPUT (No manual offset)
         '-use_wallclock_as_timestamps', '1', 
         '-thread_queue_size', '1024',
         '-f', 'x11grab', '-draw_mouse', '0', '-video_size', '1280x720', '-framerate', '30',
         '-i', displayNum, 
         
-        // 👉 2. AUDIO INPUT (AUDIO KO 0.8 SECONDS ROKA HAI TAHA KE SYNC HO JAYE)
+        // 👉 2. AUDIO INPUT (No manual offset)
         '-use_wallclock_as_timestamps', '1', 
-        '-itsoffset', '0.8',   // <-- Yahan Audio par delay lagaya hai
         '-thread_queue_size', '1024', 
         '-f', 'pulse', '-i', 'default',
         
@@ -246,7 +245,7 @@ async function startDirectStreaming() {
         '-b:v', bv, '-maxrate', maxrate, '-bufsize', bufsize,
         '-pix_fmt', 'yuv420p', '-g', '60', '-c:a', 'aac', '-b:a', ba, '-ac', '2', '-ar', '44100',
         
-        // Advanced Audio Resample
+        // Advanced Audio Resample for sync
         '-af', 'aresample=async=1000', 
         
         '-f', 'flv', RTMP_DESTINATION 
