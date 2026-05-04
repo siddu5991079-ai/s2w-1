@@ -50,15 +50,20 @@ async function startDirectStreaming() {
         defaultViewport: { width: 1280, height: 720 },
         ignoreDefaultArgs: ['--enable-automation'], 
         args: [
+            // 🛑 CORE ANTI-CRASH FLAGS 🛑
             '--no-sandbox',
             '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage', 
-            '--disable-gpu',           
-            
-            // 👇 YEH 3 NAYE FLAGS WAPAS ADD KIYE HAIN CRASH / BLACK SCREEN ROKNE KE LIYE 👇
-            '--disable-software-rasterizer',   
-            '--disable-accelerated-2d-canvas', 
-            '--force-color-profile=srgb',      
+            '--disable-dev-shm-usage', // Memory issue fix
+            '--disable-gpu',           // GPU disable taake graphic driver crash na ho
+
+            // 🛑 AGGRESSIVE MEMORY & STABILITY FLAGS (Black Screen Fix) 🛑
+            '--disable-software-rasterizer',
+            '--disable-accelerated-2d-canvas',
+            '--disable-background-timer-throttling', // Background me page stop nahi hoga
+            '--disable-backgrounding-occluded-windows', 
+            '--disable-renderer-backgrounding', 
+            '--force-color-profile=srgb',
+            '--js-flags="--max-old-space-size=1024"', // JS memory limit barha di
 
             '--window-size=1280,720',
             '--kiosk', 
@@ -214,7 +219,7 @@ async function startDirectStreaming() {
         }
     }).catch(()=>{});
 
-    // 📡 5. START FFMPEG BROADCAST (NO MANUAL DELAYS)
+    // 📡 5. START FFMPEG BROADCAST (NO MANUAL DELAYS - NATURAL SYNC)
     console.log(`[+] Broadcasting to OK.ru CHANNEL: ${SELECTED_CHANNEL} - Quality: ${streamQuality}`);
     
     let vfScale = 'scale=854:480';
