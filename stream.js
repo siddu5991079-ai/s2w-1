@@ -239,7 +239,7 @@ async function startDirectStreaming() {
         
         // ⚙️ FILTERS (Video Scale & AUDIO DELAY)
         '-vf', vfScale,
-        '-af', 'adelay=800|800', // <--- THE FIX: Yeh audio ko 800 milliseconds delay karega
+        '-af', 'adelay=1200|1200', // <--- THE FIX: Yeh audio ko 800 milliseconds delay karega
         
         // 🎬 VIDEO ENCODING
         '-c:v', 'libx264', '-preset', 'veryfast', '-profile:v', 'main',
