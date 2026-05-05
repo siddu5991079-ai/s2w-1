@@ -227,19 +227,31 @@ async function startDirectStreaming() {
 
     const displayNum = process.env.DISPLAY || ':99';
     let ffmpegArgs = [
-        '-y', 
-        '-use_wallclock_as_timestamps', '1', '-thread_queue_size', '1024',
+        '-y', '-use_wallclock_as_timestamps', '1', '-thread_queue_size', '1024',
         '-f', 'x11grab', '-draw_mouse', '0', '-video_size', '1280x720', '-framerate', '30',
-        '-i', displayNum, 
-        '-itsoffset', '1.2', 
-        '-use_wallclock_as_timestamps', '1', '-thread_queue_size', '1024',
-        '-f', 'pulse', '-i', 'default',
-        '-vf', vfScale, '-c:v', 'libx264', '-preset', 'veryfast', '-profile:v', 'main',
+        '-i', displayNum, '-thread_queue_size', '1024', '-f', 'pulse', '-i', 'default',
+        '-vf', vfScale,
+        '-c:v', 'libx264', '-preset', 'veryfast', '-profile:v', 'main',
         '-b:v', bv, '-maxrate', maxrate, '-bufsize', bufsize,
-        '-pix_fmt', 'yuv420p', '-g', '60', '-c:a', 'aac', '-b:a', ba, '-ac', '2', '-ar', '44100',
-        '-af', 'aresample=async=1000', 
-        '-f', 'flv', RTMP_DESTINATION 
+        '-pix_fmt', 'yuv420p', '-g', '60', '-max_muxing_queue_size', '1024',
+        '-c:a', 'aac', '-b:a', ba, '-ac', '2', '-ar', '44100',
+        '-async', '1', '-f', 'flv', RTMP_DESTINATION 
     ];
+    
+    // let ffmpegArgs = [
+    //     '-y', 
+    //     '-use_wallclock_as_timestamps', '1', '-thread_queue_size', '1024',
+    //     '-f', 'x11grab', '-draw_mouse', '0', '-video_size', '1280x720', '-framerate', '30',
+    //     '-i', displayNum, 
+    //     '-itsoffset', '1.2', 
+    //     '-use_wallclock_as_timestamps', '1', '-thread_queue_size', '1024',
+    //     '-f', 'pulse', '-i', 'default',
+    //     '-vf', vfScale, '-c:v', 'libx264', '-preset', 'veryfast', '-profile:v', 'main',
+    //     '-b:v', bv, '-maxrate', maxrate, '-bufsize', bufsize,
+    //     '-pix_fmt', 'yuv420p', '-g', '60', '-c:a', 'aac', '-b:a', ba, '-ac', '2', '-ar', '44100',
+    //     '-af', 'aresample=async=1000', 
+    //     '-f', 'flv', RTMP_DESTINATION 
+    // ];
     
     ffmpegProcess = spawn('ffmpeg', ffmpegArgs);
     ffmpegProcess.stderr.on('data', (data) => {
