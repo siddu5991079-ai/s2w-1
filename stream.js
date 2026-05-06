@@ -113,7 +113,7 @@ async function startDirectStreaming() {
         '-y', '-use_wallclock_as_timestamps', '1', '-thread_queue_size', '1024',
         '-f', 'x11grab', '-draw_mouse', '0', '-video_size', '1280x720', '-framerate', '30',
         '-i', displayNum, '-thread_queue_size', '1024', '-f', 'pulse', '-i', 'default',
-        '-vf', vfScale, '-af', 'adelay=1000|1000', 
+        '-vf', vfScale, '-af', 'adelay=975|975', 
         '-c:v', 'libx264', '-preset', 'veryfast', '-profile:v', 'main',
         '-b:v', bv, '-maxrate', maxrate, '-bufsize', bufsize,
         '-pix_fmt', 'yuv420p', '-g', '60', '-max_muxing_queue_size', '1024',
